@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t nanairo3/react-test -f ./client/Dockerfile.dev .
+
+script:
+  - docker run -e CI=true nanairo3/react-test npm test
+
+after_success:
+  - docker build -t nanairo3/multi-client ./client
+  - docker build -t nanairo3/multi-nginx ./nginx
+  - docker build -t nanairo3/multi-server ./server
+  - docker build -t nanairo3/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push nanairo3/multi-client
+  - docker push nanairo3/multi-nginx
+  - docker push nanairo3/multi-server
+  - docker push nanairo3/multi-worker
